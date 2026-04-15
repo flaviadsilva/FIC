@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHER — Armário Virtual</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-icon"><i data-lucide="shirt"></i></span>
+        <div>
+          <h1>CHER</h1>
+          <span class="brand-sub">virtual closet</span>
+        </div>
+      </div>
+      <button class="btn-icon" onclick="toggleSidebar()" title="Fechar sidebar">
+        <i data-lucide="panel-left-close"></i>
+      </button>
+    </div>
+
+    <div class="sidebar-add">
+      <button class="btn-add-main" onclick="openAddModalDirect('top')">
+        <i data-lucide="plus"></i>
+        Cadastrar Peça
+      </button>
+    </div>
+
+    <div class="search-box">
+      <i data-lucide="search"></i>
+      <input type="text" placeholder="Buscar no armário..." id="search-input" oninput="filterItems()">
+    </div>
+
+    <nav class="category-list">
+      <button class="cat-btn active" data-cat="all" onclick="selectCategory('all', this)">
+        <i data-lucide="layout-grid"></i><span>Todas</span>
+        <span class="cat-count" id="count-all">0</span>
+      </button>
+      <button class="cat-btn" data-cat="cabeca" onclick="selectCategory('cabeca', this)">
+        <i data-lucide="crown"></i><span>Cabeça</span>
+        <span class="cat-count" id="count-cabeca">0</span>
+      </button>
+      <button class="cat-btn" data-cat="olhos" onclick="selectCategory('olhos', this)">
+        <i data-lucide="eye"></i><span>Olhos</span>
+        <span class="cat-count" id="count-olhos">0</span>
+      </button>
+      <button class="cat-btn" data-cat="superior" onclick="selectCategory('superior', this)">
+        <i data-lucide="shirt"></i><span>Superior</span>
+        <span class="cat-count" id="count-superior">0</span>
+      </button>
+      <button class="cat-btn" data-cat="inferior" onclick="selectCategory('inferior', this)">
+        <i data-lucide="arrow-down-to-line"></i><span>Inferior</span>
+        <span class="cat-count" id="count-inferior">0</span>
+      </button>
+    </nav>
+
+    <div class="pieces-grid" id="pieces-grid"></div>
+
+    <div class="saved-section">
+      <button class="saved-header" onclick="toggleSavedLooks()">
+        <div class="saved-title">
+          <i data-lucide="bookmark"></i><span>Looks Salvos</span>
+        </div>
+        <i data-lucide="chevron-down" class="saved-chevron" id="saved-chevron"></i>
+      </button>
+      <div class="saved-list" id="saved-list"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-area">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="btn-icon sidebar-open-btn" onclick="toggleSidebar()" title="Abrir sidebar">
+          <i data-lucide="panel-left-open"></i>
+        </button>
+        <span class="look-label">Look Atual</span>
+        <span class="look-count" id="look-count">0 peças</span>
+      </div>
+      <div class="top-bar-right">
+        <button class="btn-action" onclick="clearLook()">
+          <i data-lucide="trash-2"></i><span>Limpar</span>
+        </button>
+        <button class="btn-action primary" onclick="saveLook()">
+          <i data-lucide="save"></i><span>Salvar Look</span>
+        </button>
+        <button class="btn-action ai-btn" onclick="generateWithAI()">
+          <i data-lucide="sparkles"></i><span>Gerar com IA</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PERSONAGEM COM FOTO REAL -->
+    <div class="character-area">
+      <div class="mannequin-wrapper">
+        <div class="mannequin" id="mannequin">
+          <!-- Foto base do manequim -->
+          <img src="perfil.png" alt="Manequim" class="mannequin-base" draggable="false">
+
+          <!-- Camadas de roupa sobrepostas -->
+          <div class="clothing-overlay" id="overlay-cabeca" data-zone="cabeca"></div>
+          <div class="clothing-overlay" id="overlay-olhos" data-zone="olhos"></div>
+          <div class="clothing-overlay" id="overlay-superior" data-zone="superior"></div>
+          <div class="clothing-overlay" id="overlay-inferior" data-zone="inferior"></div>
+
+          <!-- Hotspots -->
+          <button class="hotspot" data-zone="cabeca" onclick="openAddModal('cabeca')">
+            <i data-lucide="plus"></i><span class="hotspot-label">Cabeça</span>
+          </button>
+          <button class="hotspot" data-zone="olhos" onclick="openAddModal('olhos')">
+            <i data-lucide="plus"></i><span class="hotspot-label">Olhos</span>
+          </button>
+          <button class="hotspot" data-zone="superior" onclick="openAddModal('superior')">
+            <i data-lucide="plus"></i><span class="hotspot-label">Superior</span>
+          </button>
+          <button class="hotspot" data-zone="inferior" onclick="openAddModal('inferior')">
+            <i data-lucide="plus"></i><span class="hotspot-label">Inferior</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL CADASTRO -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Cadastrar Peça</h2>
+        <button class="btn-icon" onclick="closeModal()"><i data-lucide="x"></i></button>
+      </div>
+      <form id="clothing-form" onsubmit="submitClothing(event)">
+        <div class="photo-upload" onclick="triggerPhotoInput()">
+          <div class="photo-placeholder" id="photo-placeholder">
+            <i data-lucide="camera"></i>
+            <span>Tirar foto ou enviar imagem</span>
+            <span class="photo-hint">Clique para selecionar</span>
+          </div>
+          <img id="photo-preview" class="photo-preview" alt="Preview">
+          <button type="button" class="photo-remove" id="photo-remove" onclick="removePhoto(event)">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handlePhoto(event)">
+
+        <div class="form-body">
+          <div class="form-field">
+            <label>Nome da peça</label>
+            <input type="text" id="f-name" placeholder="Ex: Blazer Xadrez Amarelo" required>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Categoria</label>
+              <select id="f-category" required>
+                <option value="cabeca">Cabeça</option>
+                <option value="olhos">Olhos</option>
+                <option value="superior">Superior</option>
+                <option value="inferior">Inferior</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Cor dominante</label>
+              <div class="color-pick">
+                <input type="color" id="f-color" value="#ff69b4">
+                <span class="color-hex" id="color-label">#ff69b4</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Tags <span class="optional">(opcional)</span></label>
+            <input type="text" id="f-tags" placeholder="casual, verão, festa...">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-flat" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-solid">
+            <i data-lucide="plus"></i>Adicionar ao Armário
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SELEÇÃO -->
+  <div class="modal-overlay" id="select-overlay" onclick="closeSelectOutside(event)">
+    <div class="select-panel">
+      <div class="modal-header">
+        <h2 id="select-title">Escolher Peça</h2>
+        <button class="btn-icon" onclick="closeSelect()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="select-grid" id="select-grid"></div>
+      <div class="select-footer">
+        <button class="btn-outline" onclick="closeSelect(); openAddModalDirect(currentSelectCategory);">
+          <i data-lucide="plus"></i>Cadastrar nova peça
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL IMAGEM GERADA -->
+  <div class="modal-overlay" id="ai-result-overlay" onclick="closeAiResultOutside(event)">
+    <div class="modal ai-result-modal">
+      <div class="modal-header">
+        <h2>Look Gerado pela IA</h2>
+        <button class="btn-icon" onclick="closeAiResult()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="ai-result-body" id="ai-result-body">
+        <div class="ai-loading" id="ai-loading">
+          <div class="ai-spinner"></div>
+          <p>Gerando seu look com Gemini AI...</p>
+          <span>Isso pode levar alguns segundos</span>
+        </div>
+        <img id="ai-result-img" class="ai-result-img" alt="Look gerado pela IA">
+        <p id="ai-result-text" class="ai-result-text"></p>
+      </div>
+      <div class="modal-footer" id="ai-result-footer" style="display: none;">
+        <button class="btn-flat" onclick="closeAiResult()">Fechar</button>
+        <button class="btn-solid" onclick="downloadAiImage()">
+          <i data-lucide="download"></i>Salvar Imagem
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script src="script.js"></script>
+</body>
+</html>
