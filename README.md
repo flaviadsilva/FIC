@@ -34,6 +34,7 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias:
 ├── script.js          # Lógica do closet digital (ou pasta /js)
 ├── assets/             # Imagens, logotipos e ícones do projeto
 └── README.md           # Documentação do projeto
+```
 
 ## 💡 Como visualizar o projeto
 
